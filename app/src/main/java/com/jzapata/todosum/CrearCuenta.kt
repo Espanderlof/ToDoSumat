@@ -173,7 +173,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
 fun validarCampos(nombre: String, apellidos: String, email: String, password: String, fechaNacimiento: Long?): Boolean {
     return nombre.isNotBlank() && apellidos.isNotBlank() && email.isNotBlank() &&
             password.isNotBlank() && fechaNacimiento != null
-    // Aquí podrías añadir validaciones más específicas si lo deseas
+    // Para futuras validaciones
 }
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)

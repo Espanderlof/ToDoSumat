@@ -36,11 +36,17 @@ fun MainNavigation() {
     NavHost(navController = navController, startDestination = "inicioSession") {
         composable("inicioSession") {
             InicioSessionScreen(
-                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") }
+                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") },
+                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") }
             )
         }
         composable("crearCuenta") {
             CrearCuentaScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("recuperarPassword") {
+            RecuperarPasswordScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

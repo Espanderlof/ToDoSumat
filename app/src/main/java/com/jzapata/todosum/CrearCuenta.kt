@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.DateRange
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,8 +31,15 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
+        Text(
+            text = "Crear cuenta",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
         OutlinedTextField(
             value = nombre,
             onValueChange = { nombre = it },
@@ -109,11 +117,9 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
         Button(
             onClick = {
                 if (validarCampos(nombre, apellidos, email, password, fechaNacimiento)) {
-                    // Aquí iría la lógica para crear la cuenta
                     showConfirmDialog = true
                 } else {
                     // Mostrar un mensaje de error
-                    // Puedes usar un Snackbar o un diálogo de error aquí
                 }
             },
             modifier = Modifier.fillMaxWidth()

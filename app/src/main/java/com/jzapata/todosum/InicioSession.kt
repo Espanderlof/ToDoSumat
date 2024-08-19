@@ -41,7 +41,8 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = "inicioSesion") {
         composable("inicioSesion") {
             InicioSessionScreen(
-                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") }
+                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") },
+                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") }
             )
         }
         composable("crearCuenta") {
@@ -54,7 +55,10 @@ fun AppNavigation() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InicioSessionScreen(onNavigateToCrearCuenta: () -> Unit) {
+fun InicioSessionScreen(
+    onNavigateToCrearCuenta: () -> Unit,
+    onNavigateToRecuperarPassword: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -126,7 +130,7 @@ fun InicioSessionScreen(onNavigateToCrearCuenta: () -> Unit) {
 
         // ¿Has olvidado la contraseña? (debajo de Crear cuenta)
         TextButton(
-            onClick = { /* TODO: Implementar lógica para recuperar contraseña */ },
+            onClick = onNavigateToRecuperarPassword,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("¿Has olvidado la contraseña?")
@@ -144,7 +148,8 @@ fun InicioSessionScreen(onNavigateToCrearCuenta: () -> Unit) {
 fun InicioSessionPreview() {
     ToDoSumatTheme {
         InicioSessionScreen(
-            onNavigateToCrearCuenta = {} // Pasamos una lambda vacía para la vista previa
+            onNavigateToCrearCuenta = {},
+            onNavigateToRecuperarPassword = {}
         )
     }
 }

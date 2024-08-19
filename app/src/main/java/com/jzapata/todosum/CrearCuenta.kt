@@ -9,6 +9,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +27,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -120,6 +122,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
                 if (AuthManager.createAccount(email, password, nombre)) {
                     showConfirmDialog = true
                 } else {
+                    context.vibrateError()
                     showErrorDialog = true
                 }
             },

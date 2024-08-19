@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,6 +16,7 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -44,6 +46,7 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
                 if (AuthManager.resetPassword(email)) {
                     showConfirmDialog = true
                 } else {
+                    context.vibrateError()
                     showErrorDialog = true
                 }
             },

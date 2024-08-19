@@ -13,8 +13,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.jzapata.todosum.ui.theme.ToDoSumatTheme
-import com.jzapata.todosum.R
 
 class InicioSession : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,16 +27,34 @@ class InicioSession : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    InicioSessionScreen()
+                    AppNavigation()
                 }
             }
         }
     }
 }
 
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "inicioSesion") {
+        composable("inicioSesion") {
+            InicioSessionScreen(
+                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") }
+            )
+        }
+        composable("crearCuenta") {
+            CrearCuentaScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InicioSessionScreen() {
+fun InicioSessionScreen(onNavigateToCrearCuenta: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -98,7 +118,7 @@ fun InicioSessionScreen() {
 
         // Crear cuenta (centrado)
         TextButton(
-            onClick = { /* TODO: Implementar lógica para crear cuenta */ },
+            onClick = onNavigateToCrearCuenta,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Crear cuenta")
@@ -123,6 +143,8 @@ fun InicioSessionScreen() {
 @Composable
 fun InicioSessionPreview() {
     ToDoSumatTheme {
-        InicioSessionScreen()
+        InicioSessionScreen(
+            onNavigateToCrearCuenta = {} // Pasamos una lambda vacía para la vista previa
+        )
     }
 }

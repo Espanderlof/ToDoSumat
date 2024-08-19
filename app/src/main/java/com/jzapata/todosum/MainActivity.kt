@@ -35,8 +35,14 @@ fun MainNavigation() {
 
     NavHost(navController = navController, startDestination = "inicioSession") {
         composable("inicioSession") {
-            InicioSessionScreen()
+            InicioSessionScreen(
+                onNavigateToCrearCuenta = { navController.navigate("crearCuenta") }
+            )
         }
-        // Aquí puedes agregar más destinos para otras pantallas en el futuro
+        composable("crearCuenta") {
+            CrearCuentaScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }

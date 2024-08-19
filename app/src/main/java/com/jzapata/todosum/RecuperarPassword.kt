@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -40,8 +41,10 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
 
         Button(
             onClick = {
-                if (email.isNotBlank()) {
+                if (AuthManager.resetPassword(email)) {
                     showConfirmDialog = true
+                } else {
+                    showErrorDialog = true
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -69,6 +72,19 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
                     }
                 ) {
                     Text("Aceptar")
+                }
+            }
+        )
+    }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text("No se encontró una cuenta asociada a este correo.") },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("OK")
                 }
             }
         )

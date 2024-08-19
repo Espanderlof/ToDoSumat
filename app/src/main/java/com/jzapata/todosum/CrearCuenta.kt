@@ -24,6 +24,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
     var fechaNacimiento by remember { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     Column(
@@ -116,10 +117,10 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
 
         Button(
             onClick = {
-                if (validarCampos(nombre, apellidos, email, password, fechaNacimiento)) {
+                if (AuthManager.createAccount(email, password, nombre)) {
                     showConfirmDialog = true
                 } else {
-                    // Mostrar un mensaje de error
+                    showErrorDialog = true
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -146,6 +147,19 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
                         onNavigateBack()
                     }
                 ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text("Este correo electrónico ya está en uso.") },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
                     Text("OK")
                 }
             }

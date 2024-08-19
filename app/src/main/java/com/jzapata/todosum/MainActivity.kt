@@ -37,7 +37,8 @@ fun MainNavigation() {
         composable("inicioSession") {
             InicioSessionScreen(
                 onNavigateToCrearCuenta = { navController.navigate("crearCuenta") },
-                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") }
+                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") },
+                onNavigateToListaTareas = { navController.navigate("listaTareas") }
             )
         }
         composable("crearCuenta") {
@@ -49,6 +50,9 @@ fun MainNavigation() {
             RecuperarPasswordScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+        composable("listaTareas") {
+            ListaTareasScreen()
         }
     }
 }

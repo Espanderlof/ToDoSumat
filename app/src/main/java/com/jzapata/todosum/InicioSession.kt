@@ -42,7 +42,8 @@ fun AppNavigation() {
         composable("inicioSesion") {
             InicioSessionScreen(
                 onNavigateToCrearCuenta = { navController.navigate("crearCuenta") },
-                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") }
+                onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") },
+                onNavigateToListaTareas = { navController.navigate("listaTareas")}
             )
         }
         composable("crearCuenta") {
@@ -57,10 +58,12 @@ fun AppNavigation() {
 @Composable
 fun InicioSessionScreen(
     onNavigateToCrearCuenta: () -> Unit,
-    onNavigateToRecuperarPassword: () -> Unit
+    onNavigateToRecuperarPassword: () -> Unit,
+    onNavigateToListaTareas: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showErrorDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -69,7 +72,6 @@ fun InicioSessionScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Logotipo
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo",
@@ -78,7 +80,6 @@ fun InicioSessionScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Campo de correo electrónico
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -92,7 +93,6 @@ fun InicioSessionScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de contraseña
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -107,20 +107,21 @@ fun InicioSessionScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botón de iniciar sesión
         Button(
-            onClick = { /* TODO: Implementar lógica de inicio de sesión */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
+            onClick = {
+                if (AuthManager.login(email, password)) {
+                    onNavigateToListaTareas()
+                } else {
+                    showErrorDialog = true
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Iniciar sesión")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Crear cuenta (centrado)
         TextButton(
             onClick = onNavigateToCrearCuenta,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -128,7 +129,6 @@ fun InicioSessionScreen(
             Text("Crear cuenta")
         }
 
-        // ¿Has olvidado la contraseña? (debajo de Crear cuenta)
         TextButton(
             onClick = onNavigateToRecuperarPassword,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -136,7 +136,21 @@ fun InicioSessionScreen(
             Text("¿Has olvidado la contraseña?")
         }
     }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error de inicio de sesión") },
+            text = { Text("Email o contraseña incorrectos.") },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 }
+
 
 @Preview(
     showBackground = true,
@@ -149,7 +163,8 @@ fun InicioSessionPreview() {
     ToDoSumatTheme {
         InicioSessionScreen(
             onNavigateToCrearCuenta = {},
-            onNavigateToRecuperarPassword = {}
+            onNavigateToRecuperarPassword = {},
+            onNavigateToListaTareas = {}
         )
     }
 }

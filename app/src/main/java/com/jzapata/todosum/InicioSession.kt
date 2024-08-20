@@ -112,6 +112,7 @@ fun InicioSessionScreen(
         Button(
             onClick = {
                 if (AuthManager.login(email, password)) {
+                    context.vibrateSuccess()
                     onNavigateToListaTareas()
                 } else {
                     context.vibrateError()

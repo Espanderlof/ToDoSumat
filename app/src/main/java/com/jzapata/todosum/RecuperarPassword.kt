@@ -44,6 +44,7 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
         Button(
             onClick = {
                 if (AuthManager.resetPassword(email)) {
+                    context.vibrateSuccess()
                     showConfirmDialog = true
                 } else {
                     context.vibrateError()

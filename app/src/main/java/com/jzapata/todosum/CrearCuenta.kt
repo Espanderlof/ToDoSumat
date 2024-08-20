@@ -120,6 +120,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
         Button(
             onClick = {
                 if (AuthManager.createAccount(email, password, nombre)) {
+                    context.vibrateSuccess()
                     showConfirmDialog = true
                 } else {
                     context.vibrateError()

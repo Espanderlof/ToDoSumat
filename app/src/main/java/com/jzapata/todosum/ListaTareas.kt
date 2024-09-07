@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,12 +31,38 @@ data class Tarea(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaTareasScreen() {
-    val tareas = remember {
-        mutableStateListOf(
-            Tarea(1, "Tarea 1", Date(), Date(Date().time + 86400000)),
-            Tarea(2, "Tarea 2", Date(), Date(Date().time + 172800000), Date(), true),
-            Tarea(3, "Tarea 3", Date(), Date(Date().time + 259200000))
+    val context = LocalContext.current
+    var showAddDialog by remember { mutableStateOf(false) }
+    var tareas by remember {
+        mutableStateOf(
+            listOf(
+                Tarea(1, "Tarea 1", Date(), Date(Date().time + 86400000)),
+                Tarea(2, "Tarea 2", Date(), Date(Date().time + 172800000), Date(), true),
+                Tarea(3, "Tarea 3", Date(), Date(Date().time + 259200000))
+            )
         )
+    }
+
+    fun agregarTarea(nombre: String) {
+        val nuevaTarea = Tarea(
+            id = tareas.size + 1,
+            nombre = nombre,
+            fechaCreacion = Date(),
+            fechaLimite = Date(Date().time + 86400000) // 1 día después
+        )
+        tareas = tareas + nuevaTarea
+        context.vibrateSuccess()
+    }
+
+    fun completarTarea(tarea: Tarea) {
+        tareas = tareas.map {
+            if (it.id == tarea.id) {
+                it.copy(completada = true, fechaCompletada = Date())
+            } else {
+                it
+            }
+        }
+        context.vibrateSuccess()
     }
 
     Scaffold(
@@ -56,7 +83,8 @@ fun ListaTareasScreen() {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Mostrar mensaje "Próximamente agregar nuevas tareas"
+                    // agregar nueva tarea
+                    showAddDialog = true
                 },
                 content = {
                     Icon(Icons.Filled.Add, contentDescription = "Agregar tarea")
@@ -86,7 +114,7 @@ fun ListaTareasScreen() {
                 }
             } else {
                 items(tareasPorCompletar) { tarea ->
-                    TareaItem(tarea)
+                    TareaItem(tarea, onCompletarTarea = { completarTarea(it) })
                 }
             }
 
@@ -112,10 +140,21 @@ fun ListaTareasScreen() {
             }
         }
     }
+
+    if (showAddDialog) {
+        AgregarTareaDialog(
+            onDismiss = { showAddDialog = false },
+            onConfirm = { nombreTarea ->
+                agregarTarea(nombreTarea)
+                showAddDialog = false
+            }
+        )
+    }
+
 }
 
 @Composable
-fun TareaItem(tarea: Tarea) {
+fun TareaItem(tarea: Tarea, onCompletarTarea: (Tarea) -> Unit) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     Row(
         modifier = Modifier
@@ -125,10 +164,17 @@ fun TareaItem(tarea: Tarea) {
     ) {
         Checkbox(
             checked = tarea.completada,
-            onCheckedChange = { /* Implementar lógica para marcar como completada */ }
+            onCheckedChange = {
+                // Completar tarea
+                if (it) onCompletarTarea(tarea)
+            }
         )
         Column {
             Text(tarea.nombre, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                "Fecha ingreso: ${dateFormat.format(tarea.fechaCreacion)}",
+                style = MaterialTheme.typography.bodyMedium
+            )
             Text(
                 "Fecha límite: ${dateFormat.format(tarea.fechaLimite)}",
                 style = MaterialTheme.typography.bodyMedium
@@ -149,10 +195,48 @@ fun TareaCompletadaItem(tarea: Tarea) {
     ) {
         Text(tarea.nombre, style = MaterialTheme.typography.bodyLarge)
         Text(
+            "Fecha ingreso: ${dateFormat.format(tarea.fechaCreacion)}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
             "Fecha completada: ${dateFormat.format(tarea.fechaCompletada)}",
             style = MaterialTheme.typography.bodyMedium
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AgregarTareaDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var nombreTarea by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Agregar nueva tarea") },
+        text = {
+            TextField(
+                value = nombreTarea,
+                onValueChange = { nombreTarea = it },
+                label = { Text("Nombre de la tarea") }
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (nombreTarea.isNotBlank()) {
+                        onConfirm(nombreTarea)
+                    }
+                }
+            ) {
+                Text("Agregar")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true)

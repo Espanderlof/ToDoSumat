@@ -22,6 +22,7 @@ import com.jzapata.todosum.ui.theme.ToDoSumatTheme
 class InicioSession : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AuthManager.init(this)
         setContent {
             ToDoSumatTheme {
                 Surface(
@@ -38,18 +39,31 @@ class InicioSession : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val startDestination = if (AuthManager.isLoggedIn()) "listaTareas" else "inicioSesion"
 
-    NavHost(navController = navController, startDestination = "inicioSesion") {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("inicioSesion") {
             InicioSessionScreen(
                 onNavigateToCrearCuenta = { navController.navigate("crearCuenta") },
                 onNavigateToRecuperarPassword = { navController.navigate("recuperarPassword") },
-                onNavigateToListaTareas = { navController.navigate("listaTareas")}
+                onNavigateToListaTareas = { navController.navigate("listaTareas") {
+                    popUpTo("inicioSesion") { inclusive = true }
+                }}
             )
         }
         composable("crearCuenta") {
             CrearCuentaScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("listaTareas") {
+            ListaTareasScreen(
+                onLogout = {
+                    AuthManager.logout()
+                    navController.navigate("inicioSesion") {
+                        popUpTo("listaTareas") { inclusive = true }
+                    }
+                }
             )
         }
     }
@@ -155,13 +169,7 @@ fun InicioSessionScreen(
     }
 }
 
-
-@Preview(
-    showBackground = true,
-    widthDp = 320,
-    heightDp = 640,
-    name = "InicioSession Preview"
-)
+@Preview(showBackground = true, widthDp = 320, heightDp = 640, name = "InicioSession Preview")
 @Composable
 fun InicioSessionPreview() {
     ToDoSumatTheme {

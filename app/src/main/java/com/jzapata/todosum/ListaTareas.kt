@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -30,7 +32,7 @@ data class Tarea(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListaTareasScreen() {
+fun ListaTareasScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
     var tareas by remember {
@@ -69,11 +71,28 @@ fun ListaTareasScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier.height(40.dp)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier.height(40.dp)
+                        )
+                        Text(
+                            text = AuthManager.getCurrentUserName() ?: "",
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Filled.ExitToApp, contentDescription = "Cerrar sesión")
+                    }
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -243,6 +262,6 @@ fun AgregarTareaDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 @Composable
 fun ListaTareasScreenPreview() {
     MaterialTheme {
-        ListaTareasScreen()
+        ListaTareasScreen( onLogout = {} )
     }
 }

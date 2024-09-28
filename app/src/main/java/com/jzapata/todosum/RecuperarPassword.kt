@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -17,6 +18,7 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -43,12 +45,20 @@ fun RecuperarPasswordScreen(onNavigateBack: () -> Unit) {
 
         Button(
             onClick = {
-                if (AuthManager.resetPassword(email)) {
-                    context.vibrateSuccess()
-                    showConfirmDialog = true
-                } else {
-                    context.vibrateError()
-                    showErrorDialog = true
+                coroutineScope.launch {
+                    try {
+                        val result = AuthManager.resetPassword(email)
+                        if (result) {
+                            context.vibrateSuccess()
+                            showConfirmDialog = true
+                        } else {
+                            context.vibrateError()
+                            showErrorDialog = true
+                        }
+                    } catch (e: Exception) {
+                        context.vibrateError()
+                        showErrorDialog = true
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()

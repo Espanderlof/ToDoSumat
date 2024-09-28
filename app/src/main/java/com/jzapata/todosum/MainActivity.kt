@@ -1,6 +1,7 @@
 package com.jzapata.todosum
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,19 +13,32 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jzapata.todosum.ui.theme.ToDoSumatTheme
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AuthManager.init(this)
-        setContent {
-            ToDoSumatTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainNavigation()
+
+        lifecycleScope.launch {
+            try {
+                AuthManager.init(this@MainActivity)
+                setContent {
+                    ToDoSumatTheme {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            MainNavigation()
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                // Manejar el error de inicialización aquí
+                // Por ejemplo, mostrar un mensaje de error al usuario
+                e.printStackTrace()
             }
         }
     }

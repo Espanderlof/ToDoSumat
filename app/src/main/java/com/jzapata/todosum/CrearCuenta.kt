@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +29,7 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
     var showErrorDialog by remember { mutableStateOf(false) }
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -119,9 +121,22 @@ fun CrearCuentaScreen(onNavigateBack: () -> Unit) {
 
         Button(
             onClick = {
-                if (AuthManager.createAccount(email, password, nombre)) {
-                    context.vibrateSuccess()
-                    showConfirmDialog = true
+                if (validarCampos(nombre, apellidos, email, password, fechaNacimiento)) {
+                    coroutineScope.launch {
+                        try {
+                            val result = AuthManager.createAccount(email, password, "$nombre $apellidos")
+                            if (result) {
+                                context.vibrateSuccess()
+                                showConfirmDialog = true
+                            } else {
+                                context.vibrateError()
+                                showErrorDialog = true
+                            }
+                        } catch (e: Exception) {
+                            context.vibrateError()
+                            showErrorDialog = true
+                        }
+                    }
                 } else {
                     context.vibrateError()
                     showErrorDialog = true

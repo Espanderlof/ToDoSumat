@@ -18,11 +18,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jzapata.todosum.ui.theme.ToDoSumatTheme
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 class InicioSession : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AuthManager.init(this)
+        lifecycleScope.launch {
+            AuthManager.init(this@InicioSession)
+        }
         setContent {
             ToDoSumatTheme {
                 Surface(
@@ -56,6 +60,11 @@ fun AppNavigation() {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+        composable("recuperarPassword") {
+            RecuperarPasswordScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable("listaTareas") {
             ListaTareasScreen(
                 onLogout = {
@@ -80,6 +89,7 @@ fun InicioSessionScreen(
     var password by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -125,12 +135,19 @@ fun InicioSessionScreen(
 
         Button(
             onClick = {
-                if (AuthManager.login(email, password)) {
-                    context.vibrateSuccess()
-                    onNavigateToListaTareas()
-                } else {
-                    context.vibrateError()
-                    showErrorDialog = true
+                coroutineScope.launch {
+                    try {
+                        if (AuthManager.login(email, password)) {
+                            context.vibrateSuccess()
+                            onNavigateToListaTareas()
+                        } else {
+                            context.vibrateError()
+                            showErrorDialog = true
+                        }
+                    } catch (e: Exception) {
+                        context.vibrateError()
+                        showErrorDialog = true
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -159,7 +176,7 @@ fun InicioSessionScreen(
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
             title = { Text("Error de inicio de sesión") },
-            text = { Text("Email o contraseña incorrectos.") },
+            text = { Text("Email o contraseña incorrectos. Por favor, inténtalo de nuevo.") },
             confirmButton = {
                 TextButton(onClick = { showErrorDialog = false }) {
                     Text("OK")

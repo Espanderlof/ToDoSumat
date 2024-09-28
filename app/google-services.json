@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394032748013",
+    "project_id": "todosumat",
+    "storage_bucket": "todosumat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394032748013:android:74cdbcaa2ee1e6e886c3e4",
+        "android_client_info": {
+          "package_name": "com.jzapata.todosum"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0dqIYj9fZ11YiMRPFjpjaBHtr-oZFNHY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -18,15 +18,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 data class Tarea(
-    val id: Int,
-    val nombre: String,
-    val fechaCreacion: Date,
-    val fechaLimite: Date,
-    var fechaCompletada: Date? = null,
+    val id: String = "",
+    val nombre: String = "",
+    val fechaCreacion: Long = 0,
+    val fechaLimite: Long = 0,
+    var fechaCompletada: Long? = null,
     var completada: Boolean = false
 )
 
@@ -35,36 +38,47 @@ data class Tarea(
 fun ListaTareasScreen(onLogout: () -> Unit) {
     val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
-    var tareas by remember {
-        mutableStateOf(
-            listOf(
-                Tarea(1, "Tarea 1", Date(), Date(Date().time + 86400000)),
-                Tarea(2, "Tarea 2", Date(), Date(Date().time + 172800000), Date(), true),
-                Tarea(3, "Tarea 3", Date(), Date(Date().time + 259200000))
-            )
-        )
+    var tareas by remember { mutableStateOf<List<Tarea>>(emptyList()) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val database = Firebase.database
+    val tareasRef = database.getReference("tareas")
+
+    // Cargar tareas al inicio
+    LaunchedEffect(Unit) {
+        tareasRef.get().addOnSuccessListener { snapshot ->
+            val tareasList = mutableListOf<Tarea>()
+            for (childSnapshot in snapshot.children) {
+                val tarea = childSnapshot.getValue(Tarea::class.java)
+                tarea?.let { tareasList.add(it) }
+            }
+            tareas = tareasList
+        }
     }
 
     fun agregarTarea(nombre: String) {
-        val nuevaTarea = Tarea(
-            id = tareas.size + 1,
-            nombre = nombre,
-            fechaCreacion = Date(),
-            fechaLimite = Date(Date().time + 86400000) // 1 día después
-        )
-        tareas = tareas + nuevaTarea
-        context.vibrateSuccess()
+        coroutineScope.launch {
+            val nuevaTarea = Tarea(
+                id = UUID.randomUUID().toString(),
+                nombre = nombre,
+                fechaCreacion = System.currentTimeMillis(),
+                fechaLimite = System.currentTimeMillis() + 86400000 // 1 día después
+            )
+            tareasRef.child(nuevaTarea.id).setValue(nuevaTarea).addOnSuccessListener {
+                tareas = tareas + nuevaTarea
+                context.vibrateSuccess()
+            }
+        }
     }
 
     fun completarTarea(tarea: Tarea) {
-        tareas = tareas.map {
-            if (it.id == tarea.id) {
-                it.copy(completada = true, fechaCompletada = Date())
-            } else {
-                it
+        coroutineScope.launch {
+            val tareaActualizada = tarea.copy(completada = true, fechaCompletada = System.currentTimeMillis())
+            tareasRef.child(tarea.id).setValue(tareaActualizada).addOnSuccessListener {
+                tareas = tareas.map { if (it.id == tarea.id) tareaActualizada else it }
+                context.vibrateSuccess()
             }
         }
-        context.vibrateSuccess()
     }
 
     Scaffold(
@@ -101,10 +115,7 @@ fun ListaTareasScreen(onLogout: () -> Unit) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    // agregar nueva tarea
-                    showAddDialog = true
-                },
+                onClick = { showAddDialog = true },
                 content = {
                     Icon(Icons.Filled.Add, contentDescription = "Agregar tarea")
                 }
@@ -169,7 +180,6 @@ fun ListaTareasScreen(onLogout: () -> Unit) {
             }
         )
     }
-
 }
 
 @Composable
@@ -184,18 +194,17 @@ fun TareaItem(tarea: Tarea, onCompletarTarea: (Tarea) -> Unit) {
         Checkbox(
             checked = tarea.completada,
             onCheckedChange = {
-                // Completar tarea
                 if (it) onCompletarTarea(tarea)
             }
         )
         Column {
             Text(tarea.nombre, style = MaterialTheme.typography.bodyLarge)
             Text(
-                "Fecha ingreso: ${dateFormat.format(tarea.fechaCreacion)}",
+                "Fecha ingreso: ${dateFormat.format(Date(tarea.fechaCreacion))}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                "Fecha límite: ${dateFormat.format(tarea.fechaLimite)}",
+                "Fecha límite: ${dateFormat.format(Date(tarea.fechaLimite))}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -214,11 +223,11 @@ fun TareaCompletadaItem(tarea: Tarea) {
     ) {
         Text(tarea.nombre, style = MaterialTheme.typography.bodyLarge)
         Text(
-            "Fecha ingreso: ${dateFormat.format(tarea.fechaCreacion)}",
+            "Fecha ingreso: ${dateFormat.format(Date(tarea.fechaCreacion))}",
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
-            "Fecha completada: ${dateFormat.format(tarea.fechaCompletada)}",
+            "Fecha completada: ${dateFormat.format(Date(tarea.fechaCompletada ?: 0))}",
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -262,6 +271,6 @@ fun AgregarTareaDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 @Composable
 fun ListaTareasScreenPreview() {
     MaterialTheme {
-        ListaTareasScreen( onLogout = {} )
+        ListaTareasScreen(onLogout = {})
     }
 }

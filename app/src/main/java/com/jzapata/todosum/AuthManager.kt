@@ -2,41 +2,44 @@ package com.jzapata.todosum
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 data class Session(
-    val email: String,
-    var password: String,
-    val name: String
+    val email: String = "",
+    var password: String = "",
+    val name: String = ""
 )
 
 object AuthManager {
-    private val sessions = mutableListOf(
-        Session("jzapata@crell.cl", "123456", "Jaime Zapata"),
-        Session("jmoil@gmail.com", "654321", "Jessica Moil"),
-        Session("usuario1@gmail.com", "password1", "Usuario 1"),
-        Session("usuario2@gmail.com", "password2", "Usuario 2"),
-        Session("usuario3@gmail.com", "password3", "Usuario 3")
-    )
+    private val database = Firebase.database
+    private val usersRef = database.getReference("users")
 
     private var currentSession: Session? = null
     private var sharedPreferences: SharedPreferences? = null
 
-    fun init(context: Context) {
+    suspend fun init(context: Context) {
         if (sharedPreferences == null) {
             sharedPreferences = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
             val savedEmail = sharedPreferences?.getString("USER_EMAIL", null)
             if (savedEmail != null) {
-                currentSession = sessions.find { it.email == savedEmail }
+                val userKey = savedEmail.replace(".", ",")
+                val snapshot = usersRef.child(userKey).get().await()
+                currentSession = snapshot.getValue(Session::class.java)
             }
         }
     }
 
-    fun login(email: String, password: String): Boolean {
+    suspend fun login(email: String, password: String): Boolean {
         if (sharedPreferences == null) {
             throw IllegalStateException("AuthManager not initialized. Call init() first.")
         }
-        val session = sessions.find { it.email == email && it.password == password }
-        if (session != null) {
+        val userKey = email.replace(".", ",")
+        val snapshot = usersRef.child(userKey).get().await()
+        val session = snapshot.getValue(Session::class.java)
+
+        if (session != null && session.password == password) {
             currentSession = session
             sharedPreferences?.edit()?.putString("USER_EMAIL", email)?.apply()
             return true
@@ -60,21 +63,45 @@ object AuthManager {
         return currentSession != null
     }
 
-    fun resetPassword(email: String): Boolean {
-        val session = sessions.find { it.email == email }
+    suspend fun resetPassword(email: String): Boolean {
+        val userKey = email.replace(".", ",")
+        val snapshot = usersRef.child(userKey).get().await()
+        val session = snapshot.getValue(Session::class.java)
+
         if (session != null) {
-            // Futuramente implementar envio de correo
-            session.password = "newpassword"
+            val newPassword = "123456"
+            usersRef.child(userKey).child("password").setValue(newPassword).await()
             return true
         }
         return false
     }
 
-    fun createAccount(email: String, password: String, name: String): Boolean {
-        if (sessions.any { it.email == email }) {
+    suspend fun createAccount(email: String, password: String, name: String): Boolean {
+        val userKey = email.replace(".", ",")
+        val snapshot = usersRef.child(userKey).get().await()
+
+        if (snapshot.exists()) {
             return false // El email ya está en uso
         }
-        sessions.add(Session(email, password, name))
+
+        val newUser = Session(email, password, name)
+        usersRef.child(userKey).setValue(newUser).await()
         return true
+    }
+
+    suspend fun initializeTestUsers() {
+        val testUsers = listOf(
+            Session("jzapata@crell.cl", "123456", "Jaime Zapata"),
+            Session("test@test.cl", "123456", "Usuario Test"),
+            Session("jmoil@gmail.com", "654321", "Jessica Moil"),
+            Session("usuario1@gmail.com", "password1", "Usuario 1"),
+            Session("usuario2@gmail.com", "password2", "Usuario 2"),
+            Session("usuario3@gmail.com", "password3", "Usuario 3")
+        )
+
+        testUsers.forEach { user ->
+            val userKey = user.email.replace(".", ",")
+            usersRef.child(userKey).setValue(user).await()
+        }
     }
 }
